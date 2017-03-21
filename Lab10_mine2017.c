@@ -23,7 +23,7 @@
 #include "SysTick.h"
 #include <stdint.h>
 
-#define SENSORS        (*((volatile uint32_t *)0x4002400C))         //Port E bit 2,1,0
+#define SENSORS        (*((volatile uint32_t *)0x4002401C))         //Port E bit 2,1,0
 #define TRAFLIGHT      (*((volatile uint32_t *)0x400050FC))         //	PB5 thru PB0
 #define PEDLIGHT       (*((volatile uint32_t *)0x40025028))         //CHECK THIS VALUE FOR PF3, PF1 *****UNCHECKED******
 
@@ -51,18 +51,33 @@ typedef struct State {
 #define flash3   7
 #define flash4   8
 
-STyp FSM [9] = {
-	{ 0x21, 0x2, 100, { goW,	goW,	waitW,	waitW,	waitW,	waitW,	waitW,	waitW }},    //goW
-	{ 0x22, 0x2, 50,  { goS,  goS,  goS,    goS,    walk,   walk,   walk,   goS   }},    //waitW
-	{ 0x0C, 0x2, 100, { goS,  goS,  waitS,  waitS,  waitS,  waitS,  waitS,  waitS }},    //goS
-	{ 0x14, 0x2, 50,  { walk, walk, goW,    goW,    goW,    walk,   walk,   walk  }},    //waitS     
-  { 0x24, 0x8, 100, { walk, flash1,flash1,flash1, walk, flash1,  flash1,  flash1}},    //walk
-  { 0x24, 0x2, 30,  { flash2,flash2,flash2,flash2,flash2,flash2,flash2,flash2	  }},    //flash1
-	{ 0x24, 0x0, 30,  { flash3,flash3,flash3,flash3,flash3,flash3,flash3,flash3   }},    //flash2
-	{ 0x24, 0x2, 30,  { flash4,flash4,flash4,flash4,flash4,flash4,flash4,flash4   }},    //flash3
-	{ 0x24, 0x0, 30,  { walk,  goS,   goW,   goW,   walk,  goS,   goW,   goW      }}     //flash4
+/*
+STyp FSM[9]={
+	{0x0C, 0x02, 500, {0,0,1,1,1,1,1,1}}, //0
+	{0x14, 0x02, 50,  {2,2,2,2,4,0,2,2}}, //1
+	{0x21, 0x02, 500, {2,3,2,3,2,3,2,3}},//2
+	{0x22, 0x02, 50,  {0,0,0,0,4,0,0,4}},//3
+	{0x24, 0x08, 500, {4,5,5,5,4,5,5,5}},//4
+	{0x24, 0x02, 50,  {6,6,6,6,6,6,6,6}},//5
+	{0x24, 0x00, 50,  {7,7,7,7,7,7,7,7}},//6
+	{0x24, 0x02, 50,  {8,8,8,8,8,8,8,8}},//7
+	{0x24, 0x00, 50,  {0,0,2,0,4,0,2,0}},//8
+};
+*/
+
+STyp FSM [9] = {  //  nada | southWt | westWait | both | walkWait | walkSouth | walkWest | all 
+	{ 0x21, 0x2, 500, { goW,	  waitW,	 goW,	     waitW,	 waitW,	    waitW,	    waitW,	   waitW    }},    //goW
+	{ 0x22, 0x2, 50,  { goS,    goS,     goS,      goS,    walk,      walk,       walk,      goS      }},    //waitW
+	{ 0x0C, 0x2, 100, { goS,    goS,     waitS,    waitS,  waitS,     waitS,      waitS,     waitS    }},    //goS      2
+	{ 0x14, 0x2, 50,  { walk,   walk,    goW,      goW,    walk,       walk,       walk,      walk     }},    //waitS     
+  { 0x24, 0x8, 100, { walk,   flash1,  flash1,   flash1, walk,      flash1,     flash1,    flash1    }},    //walk  4
+  { 0x24, 0x2, 50,  { flash2, flash2,  flash2,   flash2, flash2,    flash2,     flash2,    flash2	  }},    //flash1   5
+	{ 0x24, 0x0, 50,  { flash3, flash3,  flash3,   flash3, flash3,    flash3,     flash3,    flash3   }},    //flash2
+	{ 0x24, 0x2, 50,  { flash4, flash4,  flash4,   flash4, flash4,    flash4,     flash4,    flash4   }},    //flash3
+	{ 0x24, 0x0, 50,  { walk,   goS,     goW,      goW,    walk,      goS,        goW,       goW      }}     //flash4
 	
 };
+
 
 uint32_t S;         //index to the next state
 uint32_t Input;
